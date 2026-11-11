@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mountain Fronts in VR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=STIX+Two+Text:ital@0;1&display=swap">
+<style>
+:root {
+  --paper: #fbfbf9;
+  --ink: #121316;
+  --ink-2: #4c4f55;
+  --ink-3: #8d9096;
+  --rule: #dcdcd8;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-math: "STIX Two Text", "Times New Roman", Times, serif;
+  --track: 0.14em;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121315;
+    --ink: #ecebe6;
+    --ink-2: #b4b4ae;
+    --ink-3: #7c7d7a;
+    --rule: #2c2d30;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121315;
+  --ink: #ecebe6;
+  --ink-2: #b4b4ae;
+  --ink-3: #7c7d7a;
+  --rule: #2c2d30;
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 15px/1.6 var(--font-sans);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  transition: background-color .25s ease, color .25s ease;
+}
+.sheet {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-block: 22px 18px;
+  font-size: 11px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.topbar .who {
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tb-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 500 10.5px/1 var(--font-sans);
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 7px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.btn svg {
+  width: 12px;
+  height: 12px;
+}
+.btn circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+.btn path {
+  fill: currentColor;
+}
+.plate {
+  border-top: 1px solid var(--ink);
+  padding-block: 28px 18px;
+  margin-bottom: 56px;
+  display: grid;
+  gap: 22px;
+}
+.plate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+h1 {
+  margin: 0;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: clamp(26px, 4.4vw, 44px);
+  line-height: 1.2;
+}
+.sub {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.intro {
+  max-width: 70ch;
+  font-size: 14px;
+  color: var(--ink-2);
+  margin: 0;
+}
+#view {
+  width: 100%;
+  height: 520px;
+  border: 1px solid var(--rule);
+  cursor: grab;
+  touch-action: none;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 10.5px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.classes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  border-top: 1px solid var(--rule);
+  padding-top: 18px;
+}
+.cls h2 {
+  margin: 0 0 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+}
+.cls h2::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  margin-right: 8px;
+  vertical-align: 3px;
+  border-top: 3px var(--style) var(--c);
+}
+.cls .smf {
+  font-family: var(--font-math);
+  font-style: italic;
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+.cls .smf span {
+  font-style: normal;
+}
+.cls p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.plate-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  font-size: 11px;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+}
+.plate-foot a {
+  color: var(--ink);
+}
+@media (max-width: 720px) {
+  .classes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #view {
+    height: 320px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<div class="topbar">
+  <span class="src">Daxberger 2013</span>
+  <div class="tb-right">
+    <button id="theme-toggle" class="btn" type="button" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 1.8 A6.2 6.2 0 0 1 8 14.2 Z"/></svg><span>Dark mode</span></button>
+    <span class="who">Gergo Meszaros</span>
+  </div>
+</div>
+
+<section class="plate">
+  <div class="plate-head">
+    <div>
+      <h1>Mountain Fronts in VR</h1>
+      <p class="sub">A sketch of how Smf classes could link the surface to the faults beneath it</p>
+    </div>
+  </div>
+
+  <p class="intro">Each block is one mountain front, coloured by its Smf class. The cut face at the front shows the thrust fault underneath. Look at the shape of each front, then go underground to see why it looks that way.</p>
+
+  <div id="view"></div>
+
+  <div class="controls">
+    <button id="under" class="btn" type="button">Look underground</button>
+    <button id="reset" class="btn" type="button">Reset view</button>
+    <span>Drag to move around, scroll to zoom</span>
+  </div>
+
+  <div class="classes">
+    <div class="cls" style="--c:#D85A30; --style:solid">
+      <h2>Class 1 / Active</h2>
+      <p class="smf">S<sub>mf</sub> <span>≤ 1.65</span></p>
+      <p>The fault reaches the surface and keeps pushing the range up faster than rivers can cut into it, so the front stays straight.</p>
+    </div>
+    <div class="cls" style="--c:#C99A2E; --style:solid">
+      <h2>Class 2 / Slowing</h2>
+      <p class="smf">S<sub>mf</sub> <span>1.66 – 2.5</span></p>
+      <p>The fault still moves, but slowly. Rivers start to catch up and carve shallow bays into the front.</p>
+    </div>
+    <div class="cls" style="--c:#1D9E75; --style:dashed">
+      <h2>Class 3 / Inactive</h2>
+      <p class="smf">S<sub>mf</sub> <span>&gt; 2.5</span></p>
+      <p>The fault has stopped and is buried under sediment shed off the range. Erosion has worn the front back into deep bays.</p>
+    </div>
+  </div>
+
+  <div class="plate-foot"><span>Terrain is schematic, not real elevation data</span><span><a href="https://gergomesz.github.io/andes-tectonic-reanalysis/">Andes reanalysis</a></span></div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  const btn = document.getElementById("theme-toggle");
+  const root = document.documentElement;
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  let stored = null;
+  try { stored = localStorage.getItem("mfvr-theme"); } catch (e) {}
+  if (stored === "dark" || stored === "light") root.setAttribute("data-theme", stored);
+  const current = function () {
+    return root.getAttribute("data-theme") || (mq.matches ? "dark" : "light");
+  };
+  const label = function () {
+    const dark = current() === "dark";
+    btn.querySelector("span").textContent = dark ? "Light mode" : "Dark mode";
+    btn.setAttribute("aria-pressed", String(dark));
+  };
+  btn.addEventListener("click", function () {
+    const next = current() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("mfvr-theme", next); } catch (e) {}
+    label();
+  });
+  mq.addEventListener("change", label);
+  label();
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const view = document.getElementById("view");
+const W = 3.4;
+const D = 4;
+const BOTTOM = -2.4;
+const GAP = 4.0;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+view.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(4, 10, 7);
+scene.add(sun);
+
+function smooth(a, b, x) {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+}
+
+const fronts = [
+  {
+    x: -GAP,
+    colour: "#D85A30",
+    arrow: "#993C1D",
+    front: function (z) { return -0.7; },
+    rise: 0.35,
+    height: 1.5,
+    speed: 1,
+    arrows: 3,
+    buried: false,
+    radius: 0.05
+  },
+  {
+    x: 0,
+    colour: "#C99A2E",
+    arrow: "#854F0B",
+    front: function (z) { return -0.7 + 0.22 * Math.sin(z * 2.4); },
+    rise: 0.9,
+    height: 1.3,
+    speed: 0.35,
+    arrows: 2,
+    buried: false,
+    radius: 0.04
+  },
+  {
+    x: GAP,
+    colour: "#1D9E75",
+    arrow: "#0F6E56",
+    front: function (z) { return -0.65 + 0.45 * Math.sin(z * 2.4); },
+    rise: 1.5,
+    height: 1.05,
+    speed: 0,
+    arrows: 0,
+    buried: true,
+    radius: 0.045
+  }
+];
+
+fronts.forEach(function (b) {
+  b.ground = function (u, z) {
+    const f = b.front(z);
+    const range = smooth(f, f + b.rise, u);
+    let fan = 0;
+    if (b.buried && u < f + 0.3) fan = 0.12 * Math.exp(-((u - f) * (u - f)) / 0.12);
+    return 0.25 + b.height * range + fan + 0.07 * range * Math.sin(z * 2.9 + u * 2.1);
+  };
+});
+
+const groundMaterials = [];
+const planes = [];
+const movers = [];
+
+function wall(points, x) {
+  const pos = [];
+  const idx = [];
+  points.forEach(function (p) {
+    pos.push(x + p[0], p[1], p[2], x + p[0], BOTTOM, p[2]);
+  });
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = i * 2;
+    idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: "#CDB894", side: THREE.DoubleSide, transparent: true }));
+  scene.add(mesh);
+  groundMaterials.push(mesh.material);
+}
+
+function strata(x, z) {
+  for (let k = 1; k < 4; k++) {
+    const pts = [];
+    for (let u = -W / 2; u <= W / 2 + 0.001; u += 0.1) {
+      pts.push(new THREE.Vector3(x + u, BOTTOM + k * 0.55, z));
+    }
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: "#A8936E" })));
+  }
+}
+
+function tube(a, b, colour, r) {
+  const mesh = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(a, b), 1, r, 8), new THREE.MeshBasicMaterial({ color: colour }));
+  scene.add(mesh);
+}
+
+function faultOnFace(b, z) {
+  const out = z > 0 ? 0.02 : -0.02;
+  const f = b.front(z);
+  if (!b.buried) {
+    const top = new THREE.Vector3(b.x + f, b.ground(f, z), z + out);
+    const bot = new THREE.Vector3(b.x + f + 1.2, BOTTOM, z + out);
+    tube(top, bot, b.colour, b.radius);
+    return { top: top, bot: bot };
+  }
+  const top = new THREE.Vector3(b.x + f + 0.15, -0.35, z + out);
+  const bot = new THREE.Vector3(b.x + f + 1.45, BOTTOM, z + out);
+  for (let i = 0; i < 8; i++) {
+    tube(top.clone().lerp(bot, i / 8), top.clone().lerp(bot, i / 8 + 0.08), b.colour, b.radius);
+  }
+  const s = new THREE.Shape();
+  s.moveTo(f - 0.55, b.ground(f - 0.55, z));
+  s.lineTo(f + 0.2, b.ground(f + 0.2, z));
+  s.lineTo(f + 0.15, -0.35);
+  s.lineTo(f - 0.55, 0);
+  const wedge = new THREE.Mesh(new THREE.ShapeGeometry(s), new THREE.MeshBasicMaterial({ color: "#BA7517", side: THREE.DoubleSide }));
+  wedge.position.set(b.x, 0, z + out / 2);
+  scene.add(wedge);
+  return null;
+}
+
+fronts.forEach(function (b) {
+  const geo = new THREE.PlaneGeometry(W, D, 90, 90);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  const colours = [];
+  const low = new THREE.Color("#9DB97A");
+  const high = new THREE.Color("#A48C6B");
+  const line = new THREE.Color(b.colour);
+  const sediment = new THREE.Color("#C9A262");
+
+  for (let i = 0; i < pos.count; i++) {
+    const u = pos.getX(i);
+    const z = pos.getZ(i);
+    const y = b.ground(u, z);
+    pos.setY(i, y);
+    let c = low.clone().lerp(high, Math.min(1, (y - 0.25) / 1.3));
+    if (b.buried && u < b.front(z) + 0.25 && u > b.front(z) - 0.5 && y > 0.3) c = sediment.clone();
+    if (Math.abs(u - b.front(z)) < 0.07) c = line.clone();
+    colours.push(c.r, c.g, c.b);
+  }
+  geo.setAttribute("color", new THREE.Float32BufferAttribute(colours, 3));
+  geo.computeVertexNormals();
+  const top = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true }));
+  top.position.x = b.x;
+  scene.add(top);
+  groundMaterials.push(top.material);
+
+  const n = 80;
+  const frontEdge = [];
+  const backEdge = [];
+  const leftEdge = [];
+  const rightEdge = [];
+  for (let i = 0; i <= n; i++) {
+    const u = -W / 2 + (W * i) / n;
+    const z = -D / 2 + (D * i) / n;
+    frontEdge.push([u, b.ground(u, D / 2), D / 2]);
+    backEdge.push([u, b.ground(u, -D / 2), -D / 2]);
+    leftEdge.push([-W / 2, b.ground(-W / 2, z), z]);
+    rightEdge.push([W / 2, b.ground(W / 2, z), z]);
+  }
+  wall(frontEdge, b.x);
+  wall(backEdge, b.x);
+  wall(leftEdge, b.x);
+  wall(rightEdge, b.x);
+  strata(b.x, D / 2 + 0.005);
+  strata(b.x, -D / 2 - 0.005);
+
+  const face = faultOnFace(b, D / 2);
+  faultOnFace(b, -D / 2);
+
+  const pp = [];
+  const pi = [];
+  for (let i = 0; i <= 40; i++) {
+    const z = -D / 2 + (D * i) / 40;
+    const f = b.front(z);
+    if (b.buried) {
+      pp.push(b.x + f + 0.15, -0.35, z, b.x + f + 1.45, BOTTOM, z);
+    } else {
+      pp.push(b.x + f, b.ground(f, z), z, b.x + f + 1.2, BOTTOM, z);
+    }
+  }
+  for (let i = 0; i < 40; i++) {
+    const a = i * 2;
+    pi.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  }
+  const pg = new THREE.BufferGeometry();
+  pg.setAttribute("position", new THREE.Float32BufferAttribute(pp, 3));
+  pg.setIndex(pi);
+  const plane = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ color: b.colour, transparent: true, opacity: b.buried ? 0.4 : 0.55, side: THREE.DoubleSide, depthWrite: false }));
+  plane.visible = false;
+  scene.add(plane);
+  planes.push(plane);
+
+  if (face) {
+    const dir = face.top.clone().sub(face.bot).normalize();
+    for (let i = 0; i < b.arrows; i++) {
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.24, 12), new THREE.MeshBasicMaterial({ color: b.arrow }));
+      cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+      scene.add(cone);
+      movers.push({ cone: cone, face: face, speed: b.speed, phase: i / b.arrows });
+    }
+  }
+});
+
+let theta = -0.45;
+let phi = 1.08;
+function startDist() {
+  return view.clientWidth / view.clientHeight < 1.2 ? 24 : 13.5;
+}
+
+let dist = startDist();
+let underground = false;
+const centre = new THREE.Vector3(0, -0.4, 0);
+
+function placeCamera() {
+  camera.position.set(
+    centre.x + dist * Math.sin(phi) * Math.sin(theta),
+    centre.y + dist * Math.cos(phi),
+    centre.z + dist * Math.sin(phi) * Math.cos(theta)
+  );
+  camera.lookAt(centre);
+}
+
+function resize() {
+  const w = view.clientWidth;
+  const h = view.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+
+resize();
+placeCamera();
+window.addEventListener("resize", resize);
+
+let dragging = false;
+let lastX = 0;
+let lastY = 0;
+
+view.addEventListener("pointerdown", function (e) {
+  dragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  view.setPointerCapture(e.pointerId);
+  view.style.cursor = "grabbing";
+});
+
+view.addEventListener("pointermove", function (e) {
+  if (!dragging) return;
+  theta -= (e.clientX - lastX) * 0.008;
+  phi = Math.min(1.5, Math.max(0.25, phi - (e.clientY - lastY) * 0.006));
+  lastX = e.clientX;
+  lastY = e.clientY;
+  placeCamera();
+});
+
+view.addEventListener("pointerup", function () {
+  dragging = false;
+  view.style.cursor = "grab";
+});
+
+view.addEventListener("wheel", function (e) {
+  e.preventDefault();
+  dist = Math.min(32, Math.max(7, dist + e.deltaY * 0.01));
+  placeCamera();
+}, { passive: false });
+
+const underButton = document.getElementById("under");
+underButton.addEventListener("click", function () {
+  underground = !underground;
+  groundMaterials.forEach(function (m) {
+    m.opacity = underground ? 0.2 : 1;
+    m.depthWrite = !underground;
+  });
+  planes.forEach(function (p) {
+    p.visible = underground;
+  });
+  underButton.textContent = underground ? "Back to surface" : "Look underground";
+});
+
+document.getElementById("reset").addEventListener("click", function () {
+  theta = -0.45;
+  phi = 1.08;
+  dist = startDist();
+  placeCamera();
+});
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function animate(time) {
+  const s = time * 0.0004;
+  movers.forEach(function (m) {
+    const k = reduceMotion ? 0.25 + m.phase * 0.5 : 0.12 + ((s * m.speed + m.phase) % 1) * 0.7;
+    const p = m.face.bot.clone().lerp(m.face.top, k);
+    p.x += 0.26;
+    p.z += 0.03;
+    m.cone.position.copy(p);
+  });
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
